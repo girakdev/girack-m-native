@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 void main() {
   runApp(const MyApp());
@@ -36,6 +37,51 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
+  late final IO.Socket _socket;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _socket = IO.io(
+      "https://",
+      IO.OptionBuilder()
+          .setTransports(['websocket'])
+          .disableAutoConnect()
+          .build(),
+    );
+
+    _socket.onConnect((_) {
+      debugPrint('Girak Connect!');
+
+      _socket.emit("auth", {
+        {
+          'username': "",
+          'password': "",
+        },
+        "alpha_20240523"
+      });
+    });
+
+    _socket.onConnectError((_) {
+      debugPrint("ConnectError");
+    });
+
+    _socket.onError((_) {
+      debugPrint("Error");
+    });
+
+    _socket.onDisconnect((_) {
+      debugPrint("Girak Disconnect!");
+    });
+
+    _socket.on("authResult", (_) {
+      debugPrint("Auth");
+      debugPrint(_);
+    });
+
+    _socket.connect();
+  }
 
   void _incrementCounter() {
     setState(() {
